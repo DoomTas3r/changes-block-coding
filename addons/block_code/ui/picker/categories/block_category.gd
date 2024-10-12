@@ -6,7 +6,7 @@ var icon: String
 var order: int
 
 
-func _init(p_name: String = "", p_color: Color = Color.WHITE, p_icon: String = "FileBroken", p_order: int = 0):
+func _init(p_name: String = "", p_color: Color = Color.WHITE, p_icon: String = "file_broken", p_order: int = 0):
 	name = p_name
 	color = p_color
 	icon = p_icon

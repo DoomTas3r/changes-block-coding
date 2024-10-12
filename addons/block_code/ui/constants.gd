@@ -24,155 +24,156 @@ const BUILTIN_CATEGORIES_PROPS: Dictionary = {
 	{
 		"color": Color("ec3b59"),
 		"order": 10,
-		"icon": "PlayStart",
+		"icon": "lifecycle",
 	},
 	"Lifecycle | Game":
 	{
 		"color": Color("ec3b59"),
 		"order": 12,
+		"icon": "lifecycle",
 	},
 	"Lifecycle | Spawn":
 	{
 		"color": Color("ec3b59"),
 		"order": 15,
-		"icon": "Play",
+		"icon": "lifecycle",
 	},
 	"Transform | Position":
 	{
 		"color": Color("4b6584"),
 		"order": 20,
-		"icon": "ToolMove",
+		"icon": "transform",
 	},
 	"Transform | Rotation":
 	{
 		"color": Color("4b6584"),
 		"order": 30,
-		"icon": "ToolMove",
+		"icon": "transform",
 	},
 	"Transform | Scale":
 	{
 		"color": Color("4b6584"),
 		"order": 40,
-		"icon": "ToolMove",
+		"icon": "transform",
 	},
 	"Graphics | Modulate":
 	{
 		"color": Color("03aa74"),
 		"order": 50,
-		"icon": "Paint",
+		"icon": "graphics",
 	},
 	"Graphics | Visibility":
 	{
 		"color": Color("03aa74"),
 		"order": 60,
-		"icon": "Paint",
+		"icon": "graphics",
 	},
 	"Graphics | Viewport":
 	{
 		"color": Color("03aa74"),
 		"order": 61,
-		"icon": "Paint",
+		"icon": "graphics",
 	},
 	"Graphics | Animation":
 	{
 		"color": Color("03aa74"),
 		"order": 62,
-		"icon": "Paint",
+		"icon": "graphics",
 	},
 	"UI":
 	{
 		"color": Color("03aa74"),
 		"order": 65,
-		"icon": "ThemeDeselectAll",
+		"icon": "ui",
 	},
 	"Sounds":
 	{
 		"color": Color("e30fc0"),
 		"order": 70,
-		"icon": "AudioStreamPlayer",
+		"icon": "sounds",
 	},
 	"Physics | Mass":
 	{
 		"color": Color("a5b1c2"),
 		"order": 80,
-		"icon": "RigidBody2D",
+		"icon": "physics",
 	},
 	"Physics | Velocity":
 	{
 		"color": Color("a5b1c2"),
 		"order": 90,
-		"icon": "RigidBody2D",
+		"icon": "physics",
 	},
 	"Input":
 	{
 		"color": Color("d54322"),
 		"order": 100,
-		"icon": "Slot",
+		"icon": "input",
 	},
 	"Communication | Methods":
 	{
 		"color": Color("4b7bec"),
 		"order": 110,
-		"icon": "Signals",
+		"icon": "communication",
 	},
 	"Communication | Nodes":
 	{
 		"color": Color("4b7bec"),
 		"order": 115,
-		"icon": "Signals",
+		"icon": "communication",
 	},
 	"Communication | Groups":
 	{
 		"color": Color("4b7bec"),
 		"order": 120,
-		"icon": "Signals",
+		"icon": "communication",
 	},
 	"Info | Score":
 	{
 		"color": Color("cf6a87"),
 		"order": 130,
-		"icon": "NodeInfo",
+		"icon": "info",
 	},
 	"Loops":
 	{
 		"color": Color("20bf6b"),
 		"order": 140,
-		"icon": "RotateRight",
+		"icon": "loops",
 	},
 	"Logic | Conditionals":
 	{
 		"color": Color("45aaf2"),
 		"order": 150,
-		"icon": "AnimationFilter",
+		"icon": "logic",
 	},
 	"Logic | Comparison":
 	{
 		"color": Color("45aaf2"),
 		"order": 160,
-		"icon": "AnimationFilter",
+		"icon": "logic",
 	},
 	"Logic | Boolean":
 	{
 		"color": Color("45aaf2"),
 		"order": 170,
-		"icon": "AnimationFilter",
+		"icon": "logic",
 	},
 	"Variables":
 	{
 		"color": Color("e06000"),
 		"order": 180,
-		"icon": "Key",
+		"icon": "variables",
 	},
 	"Math":
 	{
 		"color": Color("a55eea"),
 		"order": 190,
-		"icon": "VisualShaderNodeVectorFunc",
+		"icon": "math",
 	},
 	"Log":
 	{
 		"color": Color("002050"),
 		"order": 200,
-		"icon": "Debug",
+		"icon": "log",
 	},
 }
