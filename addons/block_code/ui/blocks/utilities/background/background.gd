@@ -78,9 +78,12 @@ func _set_variant(new_variant):
 
 
 func _ready():
+	# I think the parent block should get the child but this works
 	parent_block = BlockTreeUtil.get_parent_block(self)
-	parent_block.focus_entered.connect(queue_redraw)
-	parent_block.focus_exited.connect(queue_redraw)
+
+	if not parent_block == null:
+		parent_block.focus_entered.connect(queue_redraw)
+		parent_block.focus_exited.connect(queue_redraw)
 
 
 func _draw():
@@ -252,5 +255,9 @@ func _draw():
 			edge_polygon.append(Vector2(0.0, 0.0 - (0.0 if shift_top > 0 else outline_middle)))
 			edge_polygon.append(Vector2(0.0, size.y + (0.0 if shift_bottom > 0 else outline_middle)))
 
-		draw_polyline(stroke_polygon, Constants.FOCUS_BORDER_COLOR if parent_block.has_focus() else outline_color, Constants.OUTLINE_WIDTH)
-		draw_polyline(edge_polygon, Constants.FOCUS_BORDER_COLOR if parent_block.has_focus() else outline_color, Constants.OUTLINE_WIDTH)
+		if parent_block == null:
+			draw_polyline(stroke_polygon, outline_color, Constants.OUTLINE_WIDTH)
+			draw_polyline(edge_polygon, outline_color, Constants.OUTLINE_WIDTH)
+		else:
+			draw_polyline(stroke_polygon, Constants.FOCUS_BORDER_COLOR if parent_block.has_focus() else outline_color, Constants.OUTLINE_WIDTH)
+			draw_polyline(edge_polygon, Constants.FOCUS_BORDER_COLOR if parent_block.has_focus() else outline_color, Constants.OUTLINE_WIDTH)
