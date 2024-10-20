@@ -50,8 +50,10 @@ static func get_scene_path():
 
 
 func _on_focus_entered():
-	_panel.add_theme_stylebox_override("panel", _panel_focus)
+	if not definition == null and not definition.variant_type == Variant.Type.TYPE_BOOL:
+		_panel.add_theme_stylebox_override("panel", _panel_focus)
 
 
 func _on_focus_exited():
-	_panel.add_theme_stylebox_override("panel", _panel_normal)
+	if not definition == null and not definition.variant_type == Variant.Type.TYPE_BOOL:
+		_panel.add_theme_stylebox_override("panel", _panel_normal)
