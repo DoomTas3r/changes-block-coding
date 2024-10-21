@@ -33,10 +33,14 @@ const ZOOM_FACTOR: float = 1.1
 @onready var _replace_block_code_button: Button = %ReplaceBlockCodeButton
 
 @onready var _open_scene_icon = _open_scene_button.get_theme_icon("Load", "EditorIcons")
+@onready var _icon_zoom_out := EditorInterface.get_editor_theme().get_icon("ZoomLess", "EditorIcons")
+@onready var _icon_zoom_in := EditorInterface.get_editor_theme().get_icon("ZoomMore", "EditorIcons")
 
 @onready var _mouse_override: Control = %MouseOverride
 @onready var _zoom_buttons: HBoxContainer = %ZoomButtons
+@onready var _zoom_out_button: Button = %ZoomOutButton
 @onready var _zoom_button: Button = %ZoomButton
+@onready var _zoom_in_button: Button = %ZoomInButton
 
 var _current_block_script: BlockScriptSerialization
 var _current_ast_list: ASTList
@@ -59,6 +63,10 @@ func _ready():
 
 	if not _open_scene_button.icon and not Util.node_is_part_of_edited_scene(self):
 		_open_scene_button.icon = _open_scene_icon
+	if not _zoom_out_button.icon:
+		_zoom_out_button.icon = _icon_zoom_out
+	if not _zoom_in_button.icon:
+		_zoom_in_button.icon = _icon_zoom_in
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:

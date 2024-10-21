@@ -24,6 +24,7 @@ mouse_filter = 2
 
 [node name="Window" type="Control" parent="WindowContainer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 anchors_preset = 0
 offset_right = 1152.0
@@ -66,12 +67,12 @@ visible = false
 layout_mode = 2
 
 [node name="ZoomOutButton" type="Button" parent="WindowContainer/Overlay/MarginContainer/ZoomButtons"]
+unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.470588)
 custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 24
-text = "-"
 
 [node name="ZoomButton" type="Button" parent="WindowContainer/Overlay/MarginContainer/ZoomButtons"]
 unique_name_in_owner = true
@@ -82,12 +83,12 @@ theme_override_font_sizes/font_size = 24
 text = "1.0x"
 
 [node name="ZoomInButton" type="Button" parent="WindowContainer/Overlay/MarginContainer/ZoomButtons"]
+unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.470588)
 custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 24
-text = "+"
 
 [node name="MouseOverride" type="MarginContainer" parent="."]
 unique_name_in_owner = true
