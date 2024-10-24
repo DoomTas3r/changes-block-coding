@@ -21,6 +21,11 @@ signal drag_started(offset: Vector2)
 @export var drag_outside: bool = false
 
 var _drag_start_position: Vector2 = Vector2.INF
+var parent_block: Block
+
+
+func _ready() -> void:
+	parent_block = BlockTreeUtil.get_parent_block(self)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -51,6 +56,13 @@ func _gui_input(event: InputEvent) -> void:
 			_context_menu.position = get_global_mouse_position()
 			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
 			_context_menu.add_icon_item(_icon_pin, "Pin")
+
+			if parent_block:
+				_context_menu.set_item_as_checkable(1, true)
+			else:
+				push_error("Drag and drop area has no blocks as a parent")
+
+			_context_menu.set_item_checked(1, parent_block.pinned)
 			_context_menu.add_separator()
 			_context_menu.add_icon_item(_icon_delete, "Delete")
 			_context_menu.id_pressed.connect(_menu_pressed)
@@ -87,23 +99,17 @@ func _input(event: InputEvent) -> void:
 
 func _menu_pressed(index):
 	if index == 0:
-		var block: Block = BlockTreeUtil.get_parent_block(self)
-
-		if block:
-			block.confirm_duplicate()
+		if parent_block:
+			parent_block.confirm_duplicate()
 		else:
-			push_error("Duplication failed: No suitable parent found")
+			push_error("Drag and drop area has no blocks as a parent")
 	elif index == 1:
-		var block: Block = BlockTreeUtil.get_parent_block(self)
-
-		if block:
-			block.pin()
+		if parent_block:
+			parent_block.pin()
 		else:
-			push_error("Pin failed: No suitable parent found")
+			push_error("Drag and drop area has no blocks as a parent")
 	elif index == 3:
-		var block: Block = BlockTreeUtil.get_parent_block(self)
-
-		if block:
-			block.confirm_delete()
+		if parent_block:
+			parent_block.confirm_delete()
 		else:
-			push_error("Deletion failed: No suitable parent found")
+			push_error("Drag and drop area has no blocks as a parent")

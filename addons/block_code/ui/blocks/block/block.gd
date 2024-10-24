@@ -193,9 +193,10 @@ func confirm_duplicate():
 	if not can_delete:
 		return
 
-	var new_duplicate: Block = _context.block_script.instantiate_block(self.definition)
-	new_duplicate.position = self.position + Vector2(100, 50)
-	self.get_parent().add_child(new_duplicate)
+	var new_duplicate: Block = _context.block_script.instantiate_block(definition)
+	new_duplicate.position = position + Vector2(100, 50)
+	get_parent().add_child(new_duplicate)
+	print(get_parent().get_children())
 
 
 func pin():
@@ -203,7 +204,6 @@ func pin():
 		return
 
 	pinned = not pinned
-
 
 
 func remove_from_tree():
