@@ -41,9 +41,12 @@ signal modified
 ## Whether the block can be deleted by the Delete key.
 var can_delete: bool = true
 
+var pinned: bool = false
+
 var _block_extension: BlockExtension
 
 @onready var _context := BlockEditorContext.get_default()
+@onready var _icon_pin := EditorInterface.get_editor_theme().get_icon("Pin", "EditorIcons")
 
 
 func _ready():
@@ -191,7 +194,16 @@ func confirm_duplicate():
 		return
 
 	var new_duplicate: Block = _context.block_script.instantiate_block(self.definition)
+	new_duplicate.position = self.position + Vector2(100, 50)
 	self.get_parent().add_child(new_duplicate)
+
+
+func pin():
+	if not can_delete:
+		return
+
+	pinned = not pinned
+
 
 
 func remove_from_tree():

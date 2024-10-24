@@ -11,6 +11,7 @@ const Constants = preload("res://addons/block_code/ui/constants.gd")
 const BlockTreeUtil = preload("res://addons/block_code/ui/block_tree_util.gd")
 
 @onready var _icon_duplicate := EditorInterface.get_editor_theme().get_icon("Duplicate", "EditorIcons")
+@onready var _icon_pin := EditorInterface.get_editor_theme().get_icon("Pin", "EditorIcons")
 @onready var _icon_delete := EditorInterface.get_editor_theme().get_icon("Close", "EditorIcons")
 
 signal drag_started(offset: Vector2)
@@ -49,6 +50,7 @@ func _gui_input(event: InputEvent) -> void:
 
 			_context_menu.position = get_global_mouse_position()
 			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
+			_context_menu.add_icon_item(_icon_pin, "Pin")
 			_context_menu.add_separator()
 			_context_menu.add_icon_item(_icon_delete, "Delete")
 			_context_menu.id_pressed.connect(_menu_pressed)
@@ -91,7 +93,14 @@ func _menu_pressed(index):
 			block.confirm_duplicate()
 		else:
 			push_error("Duplication failed: No suitable parent found")
-	elif index == 2:
+	elif index == 1:
+		var block: Block = BlockTreeUtil.get_parent_block(self)
+
+		if block:
+			block.pin()
+		else:
+			push_error("Pin failed: No suitable parent found")
+	elif index == 3:
 		var block: Block = BlockTreeUtil.get_parent_block(self)
 
 		if block:
