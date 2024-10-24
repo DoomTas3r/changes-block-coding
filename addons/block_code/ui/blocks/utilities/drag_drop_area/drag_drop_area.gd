@@ -9,6 +9,9 @@ extends Control
 
 const Constants = preload("res://addons/block_code/ui/constants.gd")
 
+@onready var _icon_duplicate := EditorInterface.get_editor_theme().get_icon("Duplicate", "EditorIcons")
+@onready var _icon_delete := EditorInterface.get_editor_theme().get_icon("Close", "EditorIcons")
+
 signal drag_started(offset: Vector2)
 
 ## True to require that the mouse move outside of the component before
@@ -27,7 +30,7 @@ func _gui_input(event: InputEvent) -> void:
 
 	var button_event: InputEventMouseButton = event as InputEventMouseButton
 
-	if button_event.button_index != MOUSE_BUTTON_LEFT:
+	if button_event.button_index != MOUSE_BUTTON_LEFT and button_event.button_index != MOUSE_BUTTON_RIGHT:
 		return
 
 	if button_event.double_click:
@@ -37,7 +40,16 @@ func _gui_input(event: InputEvent) -> void:
 	elif button_event.pressed:
 		# Keep track of where the mouse click originated, but allow this
 		# event to propagate to other nodes.
-		_drag_start_position = event.global_position
+		if button_event.button_index == MOUSE_BUTTON_LEFT:
+			_drag_start_position = event.global_position
+		else:
+			var _context_menu := PopupMenu.new()
+			_context_menu.position = get_global_mouse_position()
+			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
+			_context_menu.add_separator()
+			_context_menu.add_icon_item(_icon_delete, "Delete")
+			add_child(_context_menu)
+			_context_menu.show()
 	else:
 		_drag_start_position = Vector2.INF
 
