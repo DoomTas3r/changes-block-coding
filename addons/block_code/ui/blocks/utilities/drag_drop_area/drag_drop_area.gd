@@ -50,25 +50,21 @@ func _gui_input(event: InputEvent) -> void:
 		if button_event.button_index == MOUSE_BUTTON_LEFT:
 			_drag_start_position = event.global_position
 		else:
-			accept_event()
-			var _context_menu := PopupMenu.new()
+			if parent_block and parent_block.can_delete:
+				accept_event()
+				var _context_menu := PopupMenu.new()
 
-			_context_menu.position = get_global_mouse_position()
-			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
-			_context_menu.add_icon_item(_icon_pin, "Pin")
-
-			if parent_block:
+				_context_menu.position = get_global_mouse_position()
+				_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
+				_context_menu.add_icon_item(_icon_pin, "Pin")
 				_context_menu.set_item_as_checkable(1, true)
-			else:
-				push_error("Drag and drop area has no blocks as a parent")
+				_context_menu.set_item_checked(1, parent_block.pinned)
+				_context_menu.add_separator()
+				_context_menu.add_icon_item(_icon_delete, "Delete")
+				_context_menu.id_pressed.connect(_menu_pressed)
+				add_child(_context_menu)
 
-			_context_menu.set_item_checked(1, parent_block.pinned)
-			_context_menu.add_separator()
-			_context_menu.add_icon_item(_icon_delete, "Delete")
-			_context_menu.id_pressed.connect(_menu_pressed)
-
-			add_child(_context_menu)
-			_context_menu.show()
+				_context_menu.show()
 	else:
 		_drag_start_position = Vector2.INF
 
@@ -99,17 +95,8 @@ func _input(event: InputEvent) -> void:
 
 func _menu_pressed(index):
 	if index == 0:
-		if parent_block:
-			parent_block.confirm_duplicate()
-		else:
-			push_error("Drag and drop area has no blocks as a parent")
+		parent_block.confirm_duplicate()
 	elif index == 1:
-		if parent_block:
-			parent_block.pin()
-		else:
-			push_error("Drag and drop area has no blocks as a parent")
+		parent_block.pin()
 	elif index == 3:
-		if parent_block:
-			parent_block.confirm_delete()
-		else:
-			push_error("Drag and drop area has no blocks as a parent")
+		parent_block.confirm_delete()
