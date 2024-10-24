@@ -43,11 +43,14 @@ func _gui_input(event: InputEvent) -> void:
 		if button_event.button_index == MOUSE_BUTTON_LEFT:
 			_drag_start_position = event.global_position
 		else:
+			accept_event()
+
 			var _context_menu := PopupMenu.new()
 			_context_menu.position = get_global_mouse_position()
 			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
 			_context_menu.add_separator()
 			_context_menu.add_icon_item(_icon_delete, "Delete")
+			_context_menu.id_pressed.connect(_menu_pressed.bind())
 			add_child(_context_menu)
 			_context_menu.show()
 	else:
@@ -76,3 +79,10 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 	drag_started.emit(_drag_start_position - motion_event.global_position)
 	_drag_start_position = Vector2.INF
+
+
+func _menu_pressed(index):
+	if index == 0:
+		print("Duplicate")
+	elif index == 2:
+		print("Delete")
