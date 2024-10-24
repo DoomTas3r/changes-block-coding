@@ -41,17 +41,48 @@ signal modified
 ## Whether the block can be deleted by the Delete key.
 var can_delete: bool = true
 
+# FIXME: Variable pinned should be saved with the scene
+## Whether the block is pinned
+var pinned: bool
+
+var block_pinned_square := ColorRect.new()
+
 var _block_extension: BlockExtension
 
 @onready var _context := BlockEditorContext.get_default()
+@onready var _icon_pin := EditorInterface.get_editor_theme().get_icon("Pin", "EditorIcons")
 
 
 func _ready():
+	if pinned == null:
+		pinned = false
+
 	focus_mode = FocusMode.FOCUS_ALL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	focus_entered.connect(_block_on_focus_entered)
 	focus_exited.connect(_block_on_focus_exited)
 	_on_definition_changed()
+
+
+	var block_pinned_icon = TextureRect.new()
+	block_pinned_icon.texture = _icon_pin
+	block_pinned_icon.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	block_pinned_icon.stretch_mode = TextureRect.STRETCH_KEEP
+	block_pinned_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# FIXME: Needs contrast with icon in all themes
+	block_pinned_square.color = Color.WHITE
+	block_pinned_square.grow_horizontal = 0
+	block_pinned_square.grow_vertical = 0
+	block_pinned_square.size_flags_horizontal = 0
+	block_pinned_square.size_flags_vertical = 0
+	block_pinned_square.custom_minimum_size = Vector2(16, 16)
+	block_pinned_square.size = Vector2(16, 16)
+	block_pinned_square.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	block_pinned_square.visible = pinned
+
+	block_pinned_square.add_child(block_pinned_icon)
+	add_child(block_pinned_square)
 
 
 func _block_on_focus_entered():
@@ -167,20 +198,49 @@ func _gui_input(event):
 			# Always accept the Delete key so it doesn't propagate to the
 			# BlockCode node in the scene tree.
 			accept_event()
+			confirm_delete()
 
-			if not can_delete:
-				return
 
-			var dialog := ConfirmationDialog.new()
-			var num_blocks = _count_child_blocks(self) + 1
-			# FIXME: Maybe this should use block_name or label, but that
-			# requires one to be both unique and human friendly.
-			if num_blocks > 1:
-				dialog.dialog_text = "Delete %d blocks?" % num_blocks
-			else:
-				dialog.dialog_text = "Delete block?"
-			dialog.confirmed.connect(remove_from_tree)
-			EditorInterface.popup_dialog_centered(dialog)
+func confirm_delete():
+	if not can_delete:
+		return
+
+	var dialog := ConfirmationDialog.new()
+	var num_blocks = _count_child_blocks(self) + 1
+	# FIXME: Maybe this should use block_name or label, but that
+	# requires one to be both unique and human friendly.
+	if num_blocks > 1:
+		dialog.dialog_text = "Delete %d blocks?" % num_blocks
+	else:
+		dialog.dialog_text = "Delete block?"
+	dialog.confirmed.connect(remove_from_tree)
+	EditorInterface.popup_dialog_centered(dialog)
+
+
+func confirm_duplicate():
+	if not can_delete:
+		return
+
+	# FIXME: new_duplicate should be draggable after instanciating or parenting
+	var new_duplicate: Block = _context.block_script.instantiate_block(definition)
+
+	var new_parent: Node = get_parent()
+	while not new_parent.name == "Window":
+		new_parent = new_parent.get_parent()
+
+	new_parent.add_child(new_duplicate)
+	# FIXME: Position for snapped blocks should be corrected
+	new_duplicate.position = position + Vector2(100, 50)
+
+	# FIXME: Snapped blocks should also be duplicated and then parented
+
+
+func pin():
+	if not can_delete:
+		return
+
+	pinned = not pinned
+	block_pinned_square.visible = pinned
 
 
 func remove_from_tree():
@@ -200,7 +260,8 @@ static func get_scene_path():
 
 
 func _drag_started(offset: Vector2 = Vector2.ZERO):
-	drag_started.emit(self, offset)
+	if not pinned:
+		drag_started.emit(self, offset)
 
 
 func disconnect_signals():
