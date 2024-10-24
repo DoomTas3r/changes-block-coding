@@ -190,7 +190,7 @@ func confirm_duplicate():
 	if not can_delete:
 		return
 
-	var new_duplicate: Block = self.duplicate()
+	var new_duplicate: Block = _context.block_script.instantiate_block(self.definition)
 	self.get_parent().add_child(new_duplicate)
 
 
