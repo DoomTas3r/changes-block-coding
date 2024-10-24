@@ -8,6 +8,7 @@
 extends Control
 
 const Constants = preload("res://addons/block_code/ui/constants.gd")
+const BlockTreeUtil = preload("res://addons/block_code/ui/block_tree_util.gd")
 
 @onready var _icon_duplicate := EditorInterface.get_editor_theme().get_icon("Duplicate", "EditorIcons")
 @onready var _icon_delete := EditorInterface.get_editor_theme().get_icon("Close", "EditorIcons")
@@ -50,7 +51,7 @@ func _gui_input(event: InputEvent) -> void:
 			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
 			_context_menu.add_separator()
 			_context_menu.add_icon_item(_icon_delete, "Delete")
-			_context_menu.id_pressed.connect(_menu_pressed.bind())
+			_context_menu.id_pressed.connect(_menu_pressed)
 			add_child(_context_menu)
 			_context_menu.show()
 	else:
@@ -85,4 +86,8 @@ func _menu_pressed(index):
 	if index == 0:
 		print("Duplicate")
 	elif index == 2:
-		print("Delete")
+		print("Requesting")
+		var block: Block = BlockTreeUtil.get_parent_block(self)
+
+		if block:
+			block.confirm_delete()
