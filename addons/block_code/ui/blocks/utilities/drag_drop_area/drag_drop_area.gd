@@ -45,13 +45,14 @@ func _gui_input(event: InputEvent) -> void:
 			_drag_start_position = event.global_position
 		else:
 			accept_event()
-
 			var _context_menu := PopupMenu.new()
+
 			_context_menu.position = get_global_mouse_position()
 			_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
 			_context_menu.add_separator()
 			_context_menu.add_icon_item(_icon_delete, "Delete")
 			_context_menu.id_pressed.connect(_menu_pressed)
+
 			add_child(_context_menu)
 			_context_menu.show()
 	else:
@@ -84,10 +85,16 @@ func _input(event: InputEvent) -> void:
 
 func _menu_pressed(index):
 	if index == 0:
-		print("Duplicate")
+		var block: Block = BlockTreeUtil.get_parent_block(self)
+
+		if block:
+			block.confirm_duplicate()
+		else:
+			push_error("Duplication failed: No suitable parent found")
 	elif index == 2:
-		print("Requesting")
 		var block: Block = BlockTreeUtil.get_parent_block(self)
 
 		if block:
 			block.confirm_delete()
+		else:
+			push_error("Deletion failed: No suitable parent found")

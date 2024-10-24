@@ -186,6 +186,14 @@ func confirm_delete():
 	EditorInterface.popup_dialog_centered(dialog)
 
 
+func confirm_duplicate():
+	if not can_delete:
+		return
+
+	var new_duplicate: Block = self.duplicate()
+	self.get_parent().add_child(new_duplicate)
+
+
 func remove_from_tree():
 	var parent = get_parent()
 	if parent:
