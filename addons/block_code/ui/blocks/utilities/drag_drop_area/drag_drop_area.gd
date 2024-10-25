@@ -12,7 +12,8 @@ const BlockTreeUtil = preload("res://addons/block_code/ui/block_tree_util.gd")
 
 @onready var _icon_duplicate := EditorInterface.get_editor_theme().get_icon("Duplicate", "EditorIcons")
 @onready var _icon_pin := EditorInterface.get_editor_theme().get_icon("Pin", "EditorIcons")
-@onready var _icon_delete := EditorInterface.get_editor_theme().get_icon("Close", "EditorIcons")
+@onready var _icon_info := EditorInterface.get_editor_theme().get_icon("Info", "EditorIcons")
+@onready var _icon_close := EditorInterface.get_editor_theme().get_icon("Close", "EditorIcons")
 
 signal drag_started(offset: Vector2)
 
@@ -21,11 +22,11 @@ signal drag_started(offset: Vector2)
 @export var drag_outside: bool = false
 
 var _drag_start_position: Vector2 = Vector2.INF
-var parent_block: Block
+var _parent_block: Block
 
 
 func _ready() -> void:
-	parent_block = BlockTreeUtil.get_parent_block(self)
+	_parent_block = BlockTreeUtil.get_parent_block(self)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -50,18 +51,20 @@ func _gui_input(event: InputEvent) -> void:
 		if button_event.button_index == MOUSE_BUTTON_LEFT:
 			_drag_start_position = event.global_position
 		else:
-			if parent_block and parent_block.can_delete:
+			if _parent_block and _parent_block.can_delete:
+				# Accepts to avoid menu conflicts
 				accept_event()
 				var _context_menu := PopupMenu.new()
 
 				_context_menu.position = get_global_mouse_position()
 				_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
+				_context_menu.add_icon_item(_icon_info, "Show tooltip")
 				_context_menu.add_icon_item(_icon_pin, "Pin")
-				_context_menu.set_item_as_checkable(1, true)
-				_context_menu.set_item_checked(1, parent_block.pinned)
+				_context_menu.set_item_as_checkable(2, true)
+				_context_menu.set_item_checked(2, _parent_block.pinned)
 				_context_menu.add_separator()
-				_context_menu.add_icon_item(_icon_delete, "Delete")
-				_context_menu.id_pressed.connect(_menu_pressed)
+				_context_menu.add_icon_item(_icon_close, "Delete")
+				_context_menu.id_pressed.connect(_menu_pressed.bind(_context_menu))
 				add_child(_context_menu)
 
 				_context_menu.show()
@@ -93,10 +96,21 @@ func _input(event: InputEvent) -> void:
 	_drag_start_position = Vector2.INF
 
 
-func _menu_pressed(index):
-	if index == 0:
-		parent_block.confirm_duplicate()
-	elif index == 1:
-		parent_block.pin()
-	elif index == 3:
-		parent_block.confirm_delete()
+func _menu_pressed(_index: int, _menu: PopupMenu):
+	var _pressed_label: String = _menu.get_item_text(_index)
+
+	if _pressed_label == "Duplicate":
+		_parent_block.confirm_duplicate()
+	elif _pressed_label == "Pin":
+		_parent_block.pin()
+	elif _pressed_label == "Show tooltip":
+		var _popup: Popup = Popup.new()
+		var _tooltip: Tooltip = _parent_block._make_custom_tooltip(_parent_block.get_tooltip())
+		_popup.position = get_global_mouse_position()
+
+		_popup.add_child(_tooltip)
+		add_child(_popup)
+
+		_popup.show()
+	elif _pressed_label == "Delete":
+		_parent_block.confirm_delete()
