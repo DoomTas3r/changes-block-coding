@@ -55,7 +55,6 @@ var pinned: bool:
 
 		if not block_pinned_panel:
 			block_pinned_panel = Panel.new()
-			block_pinned_panel.add_theme_stylebox_override("Panel", StyleBoxFlat.new())
 			block_pinned_panel.size_flags_horizontal = 0
 			block_pinned_panel.size_flags_vertical = 0
 			block_pinned_panel.custom_minimum_size = Vector2(16, 16)
@@ -233,8 +232,7 @@ func confirm_duplicate():
 		new_parent = new_parent.get_parent()
 
 	new_parent.add_child(new_duplicate)
-	# FIXME: Position for snapped blocks should be corrected
-	new_duplicate.position = position + Vector2(100, 50)
+	new_duplicate.global_position = global_position + (Vector2(100, 50) * new_parent.scale)
 
 	# FIXME: Snapped blocks should also be duplicated and then parented
 
