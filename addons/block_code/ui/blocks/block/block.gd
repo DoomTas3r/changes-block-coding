@@ -43,9 +43,37 @@ var can_delete: bool = true
 
 # FIXME: Variable pinned should be saved with the scene
 ## Whether the block is pinned
-var pinned: bool
+var pinned: bool:
+	set(value):
+		if not can_delete:
+			return
 
-var block_pinned_square := ColorRect.new()
+		if pinned == null:
+			pinned = false
+
+		pinned = value
+
+		if not block_pinned_panel:
+			block_pinned_panel = Panel.new()
+			block_pinned_panel.add_theme_stylebox_override("Panel", StyleBoxFlat.new())
+			block_pinned_panel.size_flags_horizontal = 0
+			block_pinned_panel.size_flags_vertical = 0
+			block_pinned_panel.custom_minimum_size = Vector2(16, 16)
+			block_pinned_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			block_pinned_panel.modulate = Color(1, 1, 1, 0.75)
+
+			var block_pinned_icon = TextureRect.new()
+			block_pinned_icon.texture = _icon_pin
+			block_pinned_icon.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+			block_pinned_icon.stretch_mode = TextureRect.STRETCH_KEEP
+			block_pinned_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+			block_pinned_panel.add_child(block_pinned_icon)
+			add_child(block_pinned_panel)
+
+		block_pinned_panel.visible = pinned
+
+var block_pinned_panel: Panel
 
 var _block_extension: BlockExtension
 
@@ -54,35 +82,11 @@ var _block_extension: BlockExtension
 
 
 func _ready():
-	if pinned == null:
-		pinned = false
-
 	focus_mode = FocusMode.FOCUS_ALL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	focus_entered.connect(_block_on_focus_entered)
 	focus_exited.connect(_block_on_focus_exited)
 	_on_definition_changed()
-
-
-	var block_pinned_icon = TextureRect.new()
-	block_pinned_icon.texture = _icon_pin
-	block_pinned_icon.expand_mode = TextureRect.EXPAND_KEEP_SIZE
-	block_pinned_icon.stretch_mode = TextureRect.STRETCH_KEEP
-	block_pinned_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	# FIXME: Needs contrast with icon in all themes
-	block_pinned_square.color = Color.WHITE
-	block_pinned_square.grow_horizontal = 0
-	block_pinned_square.grow_vertical = 0
-	block_pinned_square.size_flags_horizontal = 0
-	block_pinned_square.size_flags_vertical = 0
-	block_pinned_square.custom_minimum_size = Vector2(16, 16)
-	block_pinned_square.size = Vector2(16, 16)
-	block_pinned_square.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	block_pinned_square.visible = pinned
-
-	block_pinned_square.add_child(block_pinned_icon)
-	add_child(block_pinned_square)
 
 
 func _block_on_focus_entered():
@@ -233,14 +237,6 @@ func confirm_duplicate():
 	new_duplicate.position = position + Vector2(100, 50)
 
 	# FIXME: Snapped blocks should also be duplicated and then parented
-
-
-func pin():
-	if not can_delete:
-		return
-
-	pinned = not pinned
-	block_pinned_square.visible = pinned
 
 
 func remove_from_tree():

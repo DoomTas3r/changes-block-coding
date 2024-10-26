@@ -59,7 +59,7 @@ func _gui_input(event: InputEvent) -> void:
 					child.queue_free()
 
 				# A new right-click menu with items
-				var _context_menu:= PopupMenu.new()
+				var _context_menu := PopupMenu.new()
 				_context_menu.add_icon_item(_icon_duplicate, "Duplicate")
 				_context_menu.add_icon_item(_icon_info, "Block summary")
 				_context_menu.add_icon_item(_icon_pin, "Unpin" if parent_block.pinned else "Pin")
@@ -106,7 +106,7 @@ func _menu_pressed(_index: int, _context_menu: PopupMenu):
 	if _pressed_label == "Duplicate":
 		parent_block.confirm_duplicate()
 	elif _pressed_label == "Unpin" or _pressed_label == "Pin":
-		parent_block.pin()
+		parent_block.pinned = not parent_block.pinned
 	elif _pressed_label == "Block summary":
 		# TODO: Replace tooltip with full summary
 		var _tooltip := parent_block._make_custom_tooltip(parent_block.get_tooltip())
