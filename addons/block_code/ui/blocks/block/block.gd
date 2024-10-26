@@ -48,9 +48,6 @@ var pinned: bool:
 		if not can_delete:
 			return
 
-		if pinned == null:
-			pinned = false
-
 		pinned = value
 
 		if not block_pinned_panel:
@@ -197,11 +194,16 @@ func _on_block_extension_changed():
 
 func _gui_input(event):
 	if event is InputEventKey:
-		if event.pressed and event.keycode == KEY_DELETE:
-			# Always accept the Delete key so it doesn't propagate to the
-			# BlockCode node in the scene tree.
-			accept_event()
-			confirm_delete()
+		if event.pressed:
+				if event.keycode == KEY_DELETE:
+					# Always accept the Delete key so it doesn't propagate to the
+					# BlockCode node in the scene tree.
+					accept_event()
+					confirm_delete()
+				elif event.ctrl_pressed and event.keycode == KEY_D and not event.shift_pressed and not event.alt_pressed and not event.meta_pressed:
+					# Should not accept when other keys are pressed
+					accept_event()
+					confirm_duplicate()
 
 
 func confirm_delete():
@@ -225,16 +227,18 @@ func confirm_duplicate():
 		return
 
 	# FIXME: new_duplicate should be draggable after instanciating or parenting
-	var new_duplicate: Block = _context.block_script.instantiate_block(definition)
+	var new_block: Block = _context.block_script.instantiate_block(definition)
 
 	var new_parent: Node = get_parent()
 	while not new_parent.name == "Window":
 		new_parent = new_parent.get_parent()
 
-	new_parent.add_child(new_duplicate)
-	new_duplicate.global_position = global_position + (Vector2(100, 50) * new_parent.scale)
+	new_parent.add_child(new_block)
+	new_block.global_position = global_position + (Vector2(100, 50) * new_parent.scale)
 
-	# FIXME: Snapped blocks should also be duplicated and then parented
+	_copy_snapped_blocks(self, new_block)
+
+	modified.emit()
 
 
 func remove_from_tree():
@@ -293,3 +297,25 @@ func _count_child_blocks(node: Node) -> int:
 		count += _count_child_blocks(child)
 
 	return count
+
+
+func _copy_snapped_blocks(copy_from: Node, copy_to: Node):
+	var copy_to_child: Node
+	var child_count := 0
+
+	for copy_from_child in copy_from.get_children():
+		if copy_from_child is Popup:
+			return
+
+		copy_to_child = copy_to.get_child(child_count)
+		child_count += 1
+
+		if copy_from_child is SnapPoint:
+			if copy_from_child.has_snapped_block():
+				# Copy and transfer
+				#_context.block_script.instantiate_block(definition)
+				copy_to_child.add_child(_context.block_script.instantiate_block(copy_from_child.snapped_block.definition))
+				print(str(copy_from_child) + " + " + str(copy_from_child.snapped_block))
+
+		if not copy_from_child is PopupMenu:
+			_copy_snapped_blocks(copy_from_child, copy_to_child)
