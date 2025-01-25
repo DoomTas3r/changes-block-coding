@@ -43,6 +43,8 @@ var can_delete: bool = true
 
 var _block_extension: BlockExtension
 
+var _block_canvas: Node
+
 @onready var _context := BlockEditorContext.get_default()
 
 
@@ -118,7 +120,7 @@ func _get_format_string() -> String:
 	if not definition:
 		return ""
 
-	return definition.display_template
+	return tr(definition.display_template)
 
 
 func _get_parameter_defaults() -> Dictionary:
@@ -130,10 +132,7 @@ func _get_parameter_defaults() -> Dictionary:
 	if not block_extension:
 		return definition.defaults
 
-	# Use Dictionary.merge instead of Dictionary.merged for Godot 4.2 compatibility
-	var new_defaults := block_extension.get_defaults()
-	new_defaults.merge(definition.defaults)
-	return new_defaults
+	return block_extension.get_defaults().merged(definition.defaults)
 
 
 func _get_or_create_block_extension() -> BlockExtension:
@@ -163,24 +162,58 @@ func _on_block_extension_changed():
 
 func _gui_input(event):
 	if event is InputEventKey:
-		if event.pressed and event.keycode == KEY_DELETE:
-			# Always accept the Delete key so it doesn't propagate to the
-			# BlockCode node in the scene tree.
-			accept_event()
+		if event.pressed:
+			if event.keycode == KEY_DELETE:
+				# Always accept the Delete key so it doesn't propagate to the
+				# BlockCode node in the scene tree.
+				accept_event()
+				confirm_delete()
+			elif event.ctrl_pressed and not event.shift_pressed and not event.alt_pressed and not event.meta_pressed:
+				# Should not accept when other keys are pressed
+				if event.keycode == KEY_D:
+					accept_event()
+					confirm_duplicate()
 
-			if not can_delete:
-				return
 
-			var dialog := ConfirmationDialog.new()
-			var num_blocks = _count_child_blocks(self) + 1
-			# FIXME: Maybe this should use block_name or label, but that
-			# requires one to be both unique and human friendly.
-			if num_blocks > 1:
-				dialog.dialog_text = "Delete %d blocks?" % num_blocks
-			else:
-				dialog.dialog_text = "Delete block?"
-			dialog.confirmed.connect(remove_from_tree)
-			EditorInterface.popup_dialog_centered(dialog)
+func confirm_delete():
+	if not can_delete:
+		return
+
+	var dialog := ConfirmationDialog.new()
+	var num_blocks = _count_child_blocks(self) + 1
+	# FIXME: Maybe this should use block_name or label, but that
+	# requires one to be both unique and human friendly.
+	if num_blocks > 1:
+		dialog.dialog_text = "Delete %d blocks?" % num_blocks
+	else:
+		dialog.dialog_text = "Delete block?"
+	dialog.confirmed.connect(remove_from_tree)
+	EditorInterface.popup_dialog_centered(dialog)
+
+
+func confirm_duplicate():
+	if not can_delete:
+		return
+
+	var new_block: Block = _context.block_script.instantiate_block(definition)
+
+	var new_parent: Node = get_parent()
+	while not new_parent.name == "Window":
+		new_parent = new_parent.get_parent()
+
+	if not _block_canvas:
+		_block_canvas = get_parent()
+		while not _block_canvas.name == "BlockCanvas":
+			_block_canvas = _block_canvas.get_parent()
+
+	new_parent.add_child(new_block)
+	new_block.global_position = global_position + (Vector2(100, 50) * new_parent.scale)
+
+	_copy_snapped_blocks(self, new_block)
+
+	_block_canvas.reconnect_block.emit(new_block)
+
+	modified.emit()
 
 
 func remove_from_tree():
@@ -214,7 +247,14 @@ func _to_string():
 
 
 func _get_tooltip(at_position: Vector2) -> String:
-	return definition.description if definition else ""
+	if not definition:
+		return ""
+
+	var description_tx := tr(definition.description)
+	if definition.variant_type == Variant.Type.TYPE_NIL:
+		return description_tx
+
+	return "{description}\n\n{type_field} [b]{type}[/b]".format({"description": description_tx, "type_field": tr("Type:"), "type": type_string(definition.variant_type)})
 
 
 func _make_custom_tooltip(for_text) -> Control:
@@ -229,6 +269,33 @@ func _count_child_blocks(node: Node) -> int:
 	for child in node.get_children():
 		if child is SnapPoint and child.has_snapped_block():
 			count += 1
-		count += _count_child_blocks(child)
+
+		if child is Container:
+			count += _count_child_blocks(child)
 
 	return count
+
+
+func _copy_snapped_blocks(copy_from: Node, copy_to: Node):
+	var copy_to_child: Node
+	var child_index := 0
+	var maximum_count := copy_to.get_child_count()
+
+	for copy_from_child in copy_from.get_children():
+		if child_index + 1 > maximum_count:
+			return
+
+		copy_to_child = copy_to.get_child(child_index)
+		child_index += 1
+
+		if copy_from_child is SnapPoint and copy_from_child.has_snapped_block():
+			copy_to_child.add_child(_context.block_script.instantiate_block(copy_from_child.snapped_block.definition))
+			_block_canvas.reconnect_block.emit(copy_to_child.snapped_block)
+		elif copy_from_child.name.begins_with("ParameterInput"):
+			var raw_input = copy_from_child.get_raw_input()
+
+			if not raw_input is Block:
+				copy_to_child.set_raw_input(raw_input)
+
+		if copy_from_child is Container:
+			_copy_snapped_blocks(copy_from_child, copy_to_child)

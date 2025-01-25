@@ -3,7 +3,14 @@
 class_name BlockCode
 extends Node
 
-@export var block_script: BlockScriptSerialization = null
+const TxUtils := preload("res://addons/block_code/translation/utils.gd")
+
+@export var block_script: BlockScriptSerialization = null:
+	set = _set_block_script
+
+
+func _init():
+	TxUtils.set_block_translation_domain(self)
 
 
 func _ready():
@@ -29,6 +36,17 @@ func _enter_tree():
 		new_block_script.script_inherits = _get_custom_or_native_class(get_parent())
 		new_block_script.generated_script = new_block_script.generated_script.replace("INHERIT_DEFAULT", new_block_script.script_inherits)
 		block_script = new_block_script
+
+
+func _set_block_script(value):
+	if value == null:
+		# Wipe out the bidirectional link between this block code node and the
+		# block script
+		if block_script:
+			block_script.block_code_node = null
+	else:
+		value.block_code_node = self
+	block_script = value
 
 
 func _update_parent_script():
@@ -66,6 +84,8 @@ func _get_configuration_warnings():
 		warnings.append("A BlockCode must not be a root node.")
 	if get_parent() is BlockCode:
 		warnings.append("The parent must not be a BlockCode.")
+	if get_parent().script:
+		warnings.append("This BlockCode will override the existing script in the parent node.")
 	if get_parent().find_children("*", "BlockCode", false).size() > 1:
 		warnings.append("The parent should only contain one BlockCode.")
 	if block_script and _get_custom_or_native_class(get_parent()) != block_script.script_inherits:

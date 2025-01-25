@@ -9,6 +9,7 @@ const BlocksCatalog = preload("res://addons/block_code/code_generation/blocks_ca
 const DragManager = preload("res://addons/block_code/drag_manager/drag_manager.gd")
 const Picker = preload("res://addons/block_code/ui/picker/picker.gd")
 const TitleBar = preload("res://addons/block_code/ui/title_bar/title_bar.gd")
+const TxUtils := preload("res://addons/block_code/translation/utils.gd")
 const VariableDefinition = preload("res://addons/block_code/code_generation/variable_definition.gd")
 
 @onready var _context := BlockEditorContext.get_default()
@@ -38,6 +39,10 @@ var undo_redo: EditorUndoRedoManager:
 		undo_redo = value
 		if undo_redo:
 			undo_redo.version_changed.connect(_on_undo_redo_version_changed)
+
+
+func _init():
+	TxUtils.set_block_translation_domain(self)
 
 
 func _ready():
@@ -79,6 +84,11 @@ func _on_delete_node_button_pressed():
 	dialog.dialog_text = text_format.format({"node": _context.block_code_node.name, "parent": _context.parent_node.name})
 	EditorInterface.popup_dialog_centered(dialog)
 	dialog.connect("confirmed", _on_delete_dialog_confirmed.bind(_context.block_code_node))
+
+
+func _on_advanced_checkbox_toggled(is_advanced: bool):
+	_picker.set_advanced(is_advanced)
+	_picker.reload_blocks()
 
 
 func _on_delete_dialog_confirmed(block_code_node: BlockCode):

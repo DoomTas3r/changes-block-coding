@@ -3,7 +3,7 @@ extends Resource
 
 const Types = preload("res://addons/block_code/types/types.gd")
 
-const FORMAT_STRING_PATTERN = "\\[(?<out_parameter>[^\\]]+)\\]|\\{(?<in_parameter>[^}]+)\\}|(?<label>[^\\{\\[]+)"
+const FORMAT_STRING_PATTERN = "\\[(?<out_parameter>[^\\]]+)\\]|\\{const (?<const_parameter>[^}]+)\\}|\\{(?!const )(?<in_parameter>[^}]+)\\}|(?<label>[^\\{\\[]+)"
 
 @export var name: StringName
 
@@ -28,6 +28,8 @@ const FORMAT_STRING_PATTERN = "\\[(?<out_parameter>[^\\]]+)\\]|\\{(?<in_paramete
 ## Empty except for blocks that have a defined scope
 @export var scope: String
 
+@export var is_advanced: bool
+
 @export var extension_script: GDScript
 
 static var _display_template_regex := RegEx.create_from_string(FORMAT_STRING_PATTERN)
@@ -46,6 +48,7 @@ func _init(
 	p_signal_name: String = "",
 	p_scope: String = "",
 	p_extension_script: GDScript = null,
+	p_is_advanced: bool = false,
 ):
 	name = p_name
 	target_node_class = p_target_node_class
@@ -59,6 +62,7 @@ func _init(
 	signal_name = p_signal_name
 	scope = p_scope
 	extension_script = p_extension_script
+	is_advanced = p_is_advanced
 
 
 func create_block_extension() -> BlockExtension:
@@ -92,16 +96,31 @@ func get_output_parameters() -> Dictionary:
 
 static func parse_display_template(template_string: String):
 	var items: Array[Dictionary]
-	for regex_match in _display_template_regex.search_all(template_string):
-		if regex_match.names.has("label"):
-			var label_string := regex_match.get_string("label")
-			items.append({"label": label_string})
-		elif regex_match.names.has("in_parameter"):
-			var parameter_string := regex_match.get_string("in_parameter")
-			items.append({"in_parameter": _parse_parameter_format(parameter_string)})
-		elif regex_match.names.has("out_parameter"):
-			var parameter_string := regex_match.get_string("out_parameter")
-			items.append({"out_parameter": _parse_parameter_format(parameter_string)})
+	# Parse the template string.
+	var parse_template_string = func(template_string: String, hidden: bool):
+		for regex_match in _display_template_regex.search_all(template_string):
+			if regex_match.names.has("label"):
+				var label_string := regex_match.get_string("label")
+				items.append({"label": label_string, "hidden": hidden})
+			elif regex_match.names.has("in_parameter"):
+				var parameter_string := regex_match.get_string("in_parameter")
+				items.append({"in_parameter": _parse_parameter_format(parameter_string), "hidden": hidden})
+			elif regex_match.names.has("out_parameter"):
+				var parameter_string := regex_match.get_string("out_parameter")
+				items.append({"out_parameter": _parse_parameter_format(parameter_string), "hidden": hidden})
+			elif regex_match.names.has("const_parameter"):
+				var parameter_string := regex_match.get_string("const_parameter")
+				items.append({"const_parameter": _parse_parameter_format(parameter_string), "hidden": hidden})
+	# This splits in two the template string in the first "|" character
+	# to separate normal and hidden parameters.
+	var sep: int = template_string.find("|")
+	if sep == -1:
+		parse_template_string.call(template_string, false)
+	else:
+		var template_string_normal := template_string.substr(0, sep).trim_suffix(" ")
+		var template_string_advanced := template_string.substr(sep + 1)
+		parse_template_string.call(template_string_normal, false)
+		parse_template_string.call(template_string_advanced, true)
 	return items
 
 

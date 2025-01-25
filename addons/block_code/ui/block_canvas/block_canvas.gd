@@ -3,11 +3,15 @@ extends MarginContainer
 
 const ASTList = preload("res://addons/block_code/code_generation/ast_list.gd")
 const BlockAST = preload("res://addons/block_code/code_generation/block_ast.gd")
+const BlocksCatalog = preload("res://addons/block_code/code_generation/blocks_catalog.gd")
 const BlockCodePlugin = preload("res://addons/block_code/block_code_plugin.gd")
+const BlockDefinition = preload("res://addons/block_code/code_generation/block_definition.gd")
 const BlockTreeUtil = preload("res://addons/block_code/ui/block_tree_util.gd")
 const DragManager = preload("res://addons/block_code/drag_manager/drag_manager.gd")
 const ScriptGenerator = preload("res://addons/block_code/code_generation/script_generator.gd")
+const Types = preload("res://addons/block_code/types/types.gd")
 const Util = preload("res://addons/block_code/ui/util.gd")
+const VariableDefinition = preload("res://addons/block_code/code_generation/variable_definition.gd")
 
 const EXTEND_MARGIN: float = 800
 const BLOCK_AUTO_PLACE_MARGIN: Vector2 = Vector2(25, 8)
@@ -33,9 +37,14 @@ const ZOOM_FACTOR: float = 1.1
 @onready var _replace_block_code_button: Button = %ReplaceBlockCodeButton
 
 @onready var _open_scene_icon = _open_scene_button.get_theme_icon("Load", "EditorIcons")
+@onready var _icon_zoom_out := EditorInterface.get_editor_theme().get_icon("ZoomLess", "EditorIcons")
+@onready var _icon_zoom_in := EditorInterface.get_editor_theme().get_icon("ZoomMore", "EditorIcons")
 
 @onready var _mouse_override: Control = %MouseOverride
+@onready var _zoom_buttons: HBoxContainer = %ZoomButtons
+@onready var _zoom_out_button: Button = %ZoomOutButton
 @onready var _zoom_button: Button = %ZoomButton
+@onready var _zoom_in_button: Button = %ZoomInButton
 
 var _current_block_script: BlockScriptSerialization
 var _current_ast_list: ASTList
@@ -47,6 +56,8 @@ var zoom: float:
 	get:
 		return _window.scale.x
 
+var _modifier_ctrl := false
+
 signal reconnect_block(block: Block)
 signal add_block_code
 signal open_scene
@@ -56,8 +67,12 @@ signal replace_block_code
 func _ready():
 	_context.changed.connect(_on_context_changed)
 
-	if not _open_scene_button.icon and not Util.node_is_part_of_edited_scene(self):
+	if not _open_scene_button.icon and not self.is_part_of_edited_scene():
 		_open_scene_button.icon = _open_scene_icon
+	if not _zoom_out_button.icon:
+		_zoom_out_button.icon = _icon_zoom_out
+	if not _zoom_in_button.icon:
+		_zoom_in_button.icon = _icon_zoom_in
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
@@ -65,6 +80,16 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 		return false
 	if typeof(data) != TYPE_DICTIONARY:
 		return false
+
+	# Allow dropping property block of the block code node's parent node
+	if data.get("type", "") == "obj_property":
+		if data["object"] != _context.parent_node:
+			return false
+		return true
+
+	# Allow dropping resource file
+	if data.get("type", "") == "files":
+		return true
 
 	var nodes: Array = data.get("nodes", [])
 	if nodes.size() != 1:
@@ -74,7 +99,7 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	# Don't allow dropping BlockCode nodes or nodes that aren't part of the
 	# edited scene.
 	var node := get_tree().root.get_node(abs_path)
-	if node is BlockCode or not Util.node_is_part_of_edited_scene(node):
+	if node is BlockCode or not node.is_part_of_edited_scene():
 		return false
 
 	# Don't allow dropping the BlockCode node's parent as that's already self.
@@ -83,6 +108,15 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 
 
 func _drop_data(at_position: Vector2, data: Variant) -> void:
+	if data["type"] == "nodes":
+		_drop_node(at_position, data)
+	elif data["type"] == "obj_property":
+		_drop_obj_property(at_position, data)
+	elif data["type"] == "files":
+		_drop_files(at_position, data)
+
+
+func _drop_node(at_position: Vector2, data: Variant) -> void:
 	var abs_path: NodePath = data.get("nodes", []).pop_back()
 	if abs_path == null:
 		return
@@ -97,6 +131,44 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	block.set_parameter_values_on_ready({"path": node_path})
 	add_block(block, at_position)
 	reconnect_block.emit(block)
+
+
+func _drop_obj_property(at_position: Vector2, data: Variant) -> void:
+	var property_name = data["property"]
+	var property_value = data["value"]
+	var is_getter = !_modifier_ctrl
+
+	# Prepare a Variable block to set / get the property's value according to
+	# the modifier KEY_CTRL pressing.
+	var variable := VariableDefinition.new(property_name, typeof(property_value))
+	var block_definition: BlockDefinition
+
+	if is_getter:
+		block_definition = BlocksCatalog.get_property_getter_block_definition(variable)
+	else:
+		block_definition = BlocksCatalog.get_property_setter_block_definition(variable)
+		block_definition.defaults = {"value": property_value}
+
+	var block = _context.block_script.instantiate_block(block_definition)
+	add_block(block, at_position)
+	reconnect_block.emit(block)
+
+
+func _drop_files(at_position: Vector2, data: Variant) -> void:
+	var resource_files = data["files"]
+	var next_position = at_position
+	const bias = 20
+
+	for file_path in resource_files:
+		# Prepare a Variable block getting the file's resource path.
+		var block_definition = BlocksCatalog.get_resource_block_definition(file_path)
+		var block = _context.block_script.instantiate_block(block_definition)
+		add_block(block, next_position)
+		reconnect_block.emit(block)
+
+		# Shift next block's position a little bit to avoid overlap totally.
+		next_position.x += bias
+		next_position.y += bias
 
 
 func add_block(block: Block, position: Vector2 = Vector2.ZERO) -> void:
@@ -140,7 +212,7 @@ func _on_context_changed():
 		zoom = 1
 
 	_window.visible = false
-	_zoom_button.visible = false
+	_zoom_buttons.visible = false
 
 	_empty_box.visible = false
 	_selected_node_box.visible = false
@@ -152,7 +224,7 @@ func _on_context_changed():
 	if _context.block_script != null:
 		_load_block_script(_context.block_script)
 		_window.visible = true
-		_zoom_button.visible = true
+		_zoom_buttons.visible = true
 
 		if _context.block_script != _current_block_script:
 			reset_window_position()
@@ -364,6 +436,12 @@ func _on_replace_block_code_button_pressed():
 	replace_block_code.emit()
 
 
+func _input(event):
+	if event is InputEventKey:
+		if event.keycode == KEY_CTRL:
+			_modifier_ctrl = event.pressed
+
+
 func _gui_input(event):
 	if event is InputEventKey:
 		if event.keycode == KEY_SHIFT:
@@ -437,6 +515,16 @@ func generate_script_from_current_window() -> String:
 	return ScriptGenerator.generate_script(_current_ast_list, _context.block_script)
 
 
+func _on_zoom_out_button_pressed() -> void:
+	if zoom > 0.2:
+		zoom /= ZOOM_FACTOR
+
+
 func _on_zoom_button_pressed():
 	zoom = 1.0
 	reset_window_position()
+
+
+func _on_zoom_in_button_pressed() -> void:
+	if zoom < 2:
+		zoom *= ZOOM_FACTOR

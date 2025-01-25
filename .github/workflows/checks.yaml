@@ -6,6 +6,11 @@ on:
     branches:
       - main
 
+# Cancel any ongoing previous run if a PR is updated
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pre-commit:
     name: Linting and Formatting
@@ -27,7 +32,9 @@ jobs:
     name: Tests
     strategy:
       matrix:
-        godot-version: [4.2.2, 4.3.0]
+        godot-version:
+          - 4.3.0
+          - 4.4.0-dev7
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -42,4 +49,4 @@ jobs:
         godot --path . --headless --import
     - name: Run tests
       run: |
-        godot --path . --headless --script addons/gut/gut_cmdln.gd -gexit
+        godot --path . --headless -s addons/gut/gut_cmdln.gd -gexit
