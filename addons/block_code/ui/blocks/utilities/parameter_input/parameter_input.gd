@@ -277,10 +277,11 @@ func _switch_input(node: Node):
 		var raw_input = get_raw_input()
 		var data = str_to_var("" if raw_input == null or raw_input is Block else raw_input)
 		if typeof(data):
-			_option_input.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-			_option_input.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
-			_option_input.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
-			_option_input.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+			var empty_theme = StyleBoxEmpty.new()
+			_option_input.add_theme_stylebox_override("focus", empty_theme)
+			_option_input.add_theme_stylebox_override("hover", empty_theme)
+			_option_input.add_theme_stylebox_override("pressed", empty_theme)
+			_option_input.add_theme_stylebox_override("normal", empty_theme)
 			variant_type = typeof(data)
 			_background.visible = true
 			_background.is_pointy_value = variant_type == TYPE_BOOL
