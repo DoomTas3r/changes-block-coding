@@ -17,7 +17,7 @@ const CATEGORY_ORDER_OVERRIDE = {
 	"Communication | Methods": [&"define_method", &"call_method_group", &"call_method_node"],
 	"Communication | Groups": [&"add_to_group", &"add_node_to_group", &"remove_from_group", &"remove_node_from_group", &"is_in_group", &"is_node_in_group"],
 	"Variables": [&"vector2"],
-	"Math": [&"add", &"subtract", &"multiply", &"divide", &"pow", &"randf_range", &"randi_range", &"sin", &"cos", &"tan"],
+	"Math": [&"add", &"subtract", &"multiply", &"divide", &"pow", &"randf_range", &"randi_range", &"sin", &"cos", &"tan", &"vector2", &"vector2_xy", &"vector2_add",  &"vector_multiply", &"vector_from_angle", &"vector3", &"vector3_xyz", &"vector3_add", &"vector3_multiply"],
 	"Logic | Conditionals": [&"if", &"else", &"else_if"],
 	"Input": [&"is_input_actioned"],
 	"Sounds": [&"load_sound", &"play_sound", &"pause_continue_sound", &"stop_sound"],

@@ -1,19 +1,25 @@
-[gd_resource type="Resource" load_steps=2 format=3 uid="uid://ctl30ew7wtnlj"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ctl30ew7wtnlj"]
 
 [ext_resource type="Script" uid="uid://bau6qtv87fcdo" path="res://addons/block_code/code_generation/block_definition.gd" id="1_bxnpg"]
+[ext_resource type="Script" uid="uid://bkapmk0btnk7y" path="res://addons/block_code/code_generation/option_data.gd" id="1_hcv2h"]
+
+[sub_resource type="Resource" id="Resource_ufmek"]
+script = ExtResource("1_hcv2h")
+selected = 0
+items = ["1", "Vector3(1, 1, 1)"]
 
 [resource]
 script = ExtResource("1_bxnpg")
 name = &"vector3_multiply"
 target_node_class = ""
-description = "Multiplies a Vector3 with a number. Use this, for example, to get a point some distance away along an angle."
+description = "Multiplies a [b]Vector3[/b] with a number or another [b]Vector3[/b]. Use this, for example, to get a point some distance away along an angle."
 category = "Math"
 type = 3
 variant_type = 9
-display_template = "multiply {vector: VECTOR3} by {number: FLOAT}"
-code_template = "{vector} * {number}"
+display_template = "multiply {vector: VECTOR3} by {number: NIL}"
+code_template = "{vector} * {{number}}"
 defaults = {
-"number": 1.0,
+"number": SubResource("Resource_ufmek"),
 "vector": Vector3(1, 1, 1)
 }
 signal_name = ""

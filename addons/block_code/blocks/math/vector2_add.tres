@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://b4uy3eqonfnyy"]
+
+[ext_resource type="Script" uid="uid://bau6qtv87fcdo" path="res://addons/block_code/code_generation/block_definition.gd" id="1_52jwf"]
+
+[resource]
+script = ExtResource("1_52jwf")
+name = &"vector2_add"
+target_node_class = ""
+description = "Adds a [b]Vector2[/b] with another [b]Vector2[/b]."
+category = "Math"
+type = 3
+variant_type = 5
+display_template = "add {vector_a: VECTOR2} and {vector_b: VECTOR2}"
+code_template = "{vector_a} * {vector_b}"
+defaults = {
+"vector_a": Vector2(1, 1),
+"vector_b": Vector2(1, 1)
+}
+signal_name = ""
+is_advanced = false

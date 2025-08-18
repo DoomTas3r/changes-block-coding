@@ -1,12 +1,12 @@
 [gd_resource type="Resource" load_steps=2 format=3 uid="uid://c7a6wnxegkfd5"]
 
-[ext_resource type="Script" path="res://addons/block_code/code_generation/block_definition.gd" id="1_1p1ve"]
+[ext_resource type="Script" uid="uid://bau6qtv87fcdo" path="res://addons/block_code/code_generation/block_definition.gd" id="1_1p1ve"]
 
 [resource]
 script = ExtResource("1_1p1ve")
-name = &"from_angle"
+name = &"vector_from_angle"
 target_node_class = ""
-description = "Creates a unit Vector2 rotated to the given angle in radians."
+description = "Creates a unit [b]Vector2[/b] rotated to the given [i]angle[/i] in radians."
 category = "Math"
 type = 3
 variant_type = 5
@@ -14,4 +14,4 @@ display_template = "vector from {angle: FLOAT}"
 code_template = "Vector2.from_angle({angle})"
 defaults = {}
 signal_name = ""
-scope = ""
+is_advanced = false
